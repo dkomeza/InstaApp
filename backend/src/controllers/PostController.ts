@@ -150,6 +150,60 @@ class PostController {
     return { ok: true, status: "ok", posts: postsArray };
   };
 
+  public getPost = async (token: string, id: string) => {
+    const user = await UserController.getUserByToken(token);
+
+    if (!user.ok) {
+      return { ok: false, status: "Invalid token" };
+    }
+    if (!user.user) {
+      return { ok: false, status: "User not found" };
+    }
+
+    const post = await PostModel.findById(id)
+      .populate<{ images: IImage[] }>("images")
+      .populate<{ author: IUser }>("author")
+      .populate<{ likes: IUser[] }>("likes")
+      .populate<{ tags: ITag[] }>("tags")
+      .populate<{ comments: IComment[] }>({
+        path: "comments",
+        populate: [
+          { path: "author", model: "User" },
+          { path: "likes", model: "User" },
+        ],
+      });
+
+    if (!post) {
+      return { ok: false, status: "Post not found" };
+    }
+
+    const likedPosts = post.likes.map((like) => like._id.toString());
+    const likes = likedPosts.includes(user.user!._id.toString());
+
+    const Post: Post = {
+      id: post._id.toString(),
+      author: post.author.username,
+      description: post.description,
+      images: post.images.map((image) => image._id.toString()),
+      lastChangeTime: post.lastChangeTime,
+      lastChangeOperation: post.lastChangeOperation,
+      likes: post.likes.map((like) => like._id.toString()),
+      comments: post.comments.map((comment) => {
+        return {
+          _id: comment._id.toString(),
+          text: comment.text,
+          author: comment.author.username,
+          lastChangeTime: comment.lastChangeTime,
+          likes: comment.likes.map((like) => like._id.toString()),
+        };
+      }),
+      liked: likes || false,
+      tags: post.tags.map((tag) => tag.name),
+    };
+
+    return { ok: true, status: "ok", post: Post };
+  };
+
   public likePost = async (token: string, id: string) => {
     const user = await UserController.getUserByToken(token);
 

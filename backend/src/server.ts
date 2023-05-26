@@ -41,6 +41,24 @@ router.route("get", "/posts", async (req, res) => {
 
   return res.send({ ok: true, status: "ok", posts: posts.posts });
 });
+router.route("get", "/posts/:id", async (req, res) => {
+  const token = req.headers["authorization"]?.split(" ")[1];
+
+  if (!req.params["id"]) {
+    return res.send({ ok: false, status: "No id defined" });
+  }
+
+  const post = await PostController.getPost(
+    token!,
+    req.params["id"].toString()
+  );
+
+  if (!post.ok) {
+    return res.send({ ok: false, status: post.status });
+  }
+
+  return res.send({ ok: true, status: "ok", post: post.post });
+});
 router.route("post", "/posts", (req, res) => {
   const form = formidable({
     multiples: true,
