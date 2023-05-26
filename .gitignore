@@ -1,0 +1,4 @@
+build/
+old/
+.env
+node_modules/
