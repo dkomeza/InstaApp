@@ -142,7 +142,7 @@ class FileController {
     }
   }
 
-  public getPosts = async (token: string) => {
+  public getPosts = async (token: string, username = "") => {
     const user = await UserController.getUserByToken(token);
     if (!user.ok) {
       return { ok: false, status: "Invalid token" };
@@ -151,7 +151,7 @@ class FileController {
       return { ok: false, status: "User not found" };
     }
 
-    const posts = await PostModel.find({})
+    const posts = await PostModel.find({ username })
       .populate<{ images: Image[] }>("images")
       .populate<{ author: User }>("author")
       .populate<{ likes: User[] }>("likes")
@@ -333,6 +333,21 @@ class FileController {
       .limit(10);
 
     return { ok: true, status: "ok", tags };
+  };
+
+  public getUserPosts = async (username: string) => {
+    const posts = await PostModel.find({ author: username })
+      .populate<{ images: Image[] }>("images")
+      .populate<{ author: User }>("author")
+      .populate<{ likes: User[] }>("likes")
+      .populate<{ tags: Tag[] }>("tags")
+      .populate<{ comments: IComment[] }>({
+        path: "comments",
+        populate: [
+          { path: "author", model: "User" },
+          { path: "likes", model: "User" },
+        ],
+      });
   };
 }
 

@@ -54,3 +54,8 @@ Content-Type: "application/json"
 
 POST https://dev.dkomeza.pl/api/posts/6468a30e69336c2f02eb38ab/comment/64705161bf3a818a62aa846f/like
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0NzA0YWRjODk0MTI5NGE4ZjFjYWE5NCIsImlhdCI6MTY4NTA4MDkwNiwiZXhwIjoxNjg1MDg4MTA2fQ.pEESyP_quMrUpaZDSM-iFCW0qikncixantn8u16jT2c
+###
+
+// Profiles api
+GET https://dev.dkomeza.pl/api/profile/asdf
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0NzA0YWRjODk0MTI5NGE4ZjFjYWE5NCIsImlhdCI6MTY4NTA4MDkwNiwiZXhwIjoxNjg1MDg4MTA2fQ.pEESyP_quMrUpaZDSM-iFCW0qikncixantn8u16jT2c

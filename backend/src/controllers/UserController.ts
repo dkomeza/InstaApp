@@ -146,6 +146,23 @@ class UserController {
 
     return { ok: true, user: user.toObject() };
   }
+
+  async getProfile(username: string) {
+    const profile = await UserModel.find({ username });
+
+    if (!profile[0]) {
+      return { ok: false, status: "User not found" };
+    }
+    const Profile = {
+      id: profile[0]._id,
+      username: profile[0].username,
+      name: profile[0].name,
+      surname: profile[0].surname,
+      verified: profile[0].verified,
+    };
+
+    return { ok: true, profile: Profile };
+  }
 }
 
 export default new UserController();

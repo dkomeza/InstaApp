@@ -324,4 +324,41 @@ router.route("get", "/users", async (_req, res) => {
   res.send({ status: "ok", users });
 });
 
+// profiles
+router.route("get", "/profile/:username", async (req, res) => {
+  const token = req.headers["authorization"]?.split(" ")[1];
+  const { username } = req.params;
+
+  if (!username) {
+    res.statusCode = 400;
+    res.send({ status: "Username is required" });
+    return;
+  }
+
+  const profile = await UserController.getProfile(username.toString());
+
+  if (!profile.ok) {
+    res.statusCode = 404;
+    return res.send({ status: profile.status });
+  }
+
+  if (!profile.profile) {
+    res.statusCode = 404;
+    return res.send({ status: "Profile not found" });
+  }
+
+  const userPosts = await ImageController.getPosts(token!, profile.profile.id);
+
+  if (!userPosts.ok) {
+    res.statusCode = 500;
+    return res.send({ status: userPosts.status });
+  }
+
+  return res.send({
+    ok: true,
+    profile: profile.profile,
+    posts: userPosts.posts,
+  });
+});
+
 app.listen();
