@@ -1,4 +1,4 @@
-import slow from "../../../../../Github/slow/index.js";
+import slow from "../../../slow/index.js";
 import formidable from "formidable";
 import * as fs from "fs";
 
@@ -11,13 +11,13 @@ const router = app.router!;
 
 connectDB();
 
-// app.registerMiddleware("/images/*", UserController.auth);
+app.registerMiddleware("/images/*", UserController.auth);
 
-// app.registerMiddleware("/posts", UserController.auth);
-// app.registerMiddleware("/posts/*", UserController.auth);
+app.registerMiddleware("/posts", UserController.auth);
+app.registerMiddleware("/posts/*", UserController.auth);
 
-// app.registerMiddleware("/tags", UserController.auth);
-// app.registerMiddleware("/tags/*", UserController.auth);
+app.registerMiddleware("/tags", UserController.auth);
+app.registerMiddleware("/tags/*", UserController.auth);
 
 router.route("get", "/status", (_req, res) => {
   res.send({ status: "ok" });
@@ -26,11 +26,8 @@ router.route("get", "/status", (_req, res) => {
 // posts
 router.route("get", "/posts", async (req, res) => {
   const token = req.headers["authorization"]?.split(" ")[1];
-  if (!token) {
-    return res.send({ ok: false, status: "No token provided" });
-  }
 
-  const posts = await ImageController.getPosts(token);
+  const posts = await ImageController.getPosts(token!);
 
   if (!posts.ok) {
     return res.send({ ok: false, status: posts.status });
@@ -109,15 +106,56 @@ router.route("post", "/posts/:id/like", async (req, res) => {
     return res.send({ ok: false, status: "No id provided" });
   }
 
-  const auth = await UserController.authenticateUser(token.toString());
+  const like = await ImageController.likePost(token, id.toString());
 
-  if (!auth) {
-    res.statusCode = 401;
-    res.send({ ok: false, status: "Invalid token" });
-    return;
+  if (!like.ok) {
+    return res.send({ ok: false, status: like.status });
   }
 
-  const like = await ImageController.likePost(token, id.toString());
+  return res.send({ ok: true, status: "ok" });
+});
+router.route("post", "/posts/:id/comment", async (req, res) => {
+  const { id } = req.params;
+  const { content } = req.body;
+  const token = req.headers["authorization"]?.split(" ")[1];
+
+  if (!id) {
+    return res.send({ ok: false, status: "No post ID provided" });
+  }
+
+  if (!content) {
+    return res.send({ ok: false, status: "No comment content" });
+  }
+
+  if (!token) {
+    return res.send({ ok: false, status: "No token provided" });
+  }
+
+  const comment = await ImageController.commentPost(
+    token,
+    id.toString(),
+    content.toString()
+  );
+
+  if (!comment.ok) {
+    return res.send({ ok: false, status: comment.status });
+  }
+
+  return res.send({ ok: true, status: "ok" });
+});
+router.route("post", "/posts/:id/comment/:commentId/like", async (req, res) => {
+  const { commentId } = req.params;
+  const token = req.headers["authorization"]?.split(" ")[1];
+
+  if (!commentId) {
+    return res.send({ ok: false, status: "No comment ID provided" });
+  }
+
+  if (!token) {
+    return res.send({ ok: false, status: "No token provided" });
+  }
+
+  const like = await ImageController.likeComment(token, commentId.toString());
 
   if (!like.ok) {
     return res.send({ ok: false, status: like.status });

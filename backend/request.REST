@@ -1,14 +1,56 @@
 ###
-GET https://dev.dawidkomeza.pl/api/status
+GET https://dev.dkomeza.pl/api/status
 
 ###
-POST https://dev.dawidkomeza.pl/api/users/register
-Content-Type: application/json
+// auth section
+GET https://dev.dkomeza.pl/api/users
+###
+POST https://dev.dkomeza.pl/api/users/signup
+Content-Type: "application/json"
 
 {
-    "username": "dkomeza",
-    "password": "password",
-    "email": "dkom@dkom.com",
-    "name": "Dawid",
-    "surname": "Komeza"
+    "username": "test1",
+    "email": "test1",
+    "password": "test1",
+    "name": "test1",
+    "surname": "test1"
 }
+
+###
+POST https://dev.dkomeza.pl/api/users/signin
+Content-Type: "application/json"
+
+{
+    "username": "test1",
+    "password": "test1"
+}
+
+###
+POST https://dev.dkomeza.pl/api/users/authenticate
+Content-Type: "application/json"
+
+{
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0NzA0YWRjODk0MTI5NGE4ZjFjYWE5NCIsImlhdCI6MTY4NTA4MDc5NiwiZXhwIjoxNjg1MDg3OTk2fQ.taBMdvvf9g94BaYBzQLQezCzHy2fTfJF-PMJ8IrERwY"
+}
+###
+
+// Post api
+GET https://dev.dkomeza.pl/api/posts
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0NzA0YWRjODk0MTI5NGE4ZjFjYWE5NCIsImlhdCI6MTY4NTA4MDkwNiwiZXhwIjoxNjg1MDg4MTA2fQ.pEESyP_quMrUpaZDSM-iFCW0qikncixantn8u16jT2c
+###
+
+POST https://dev.dkomeza.pl/api/posts/6468a30e69336c2f02eb38ab/like
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0NzA0YWRjODk0MTI5NGE4ZjFjYWE5NCIsImlhdCI6MTY4NTA4MDkwNiwiZXhwIjoxNjg1MDg4MTA2fQ.pEESyP_quMrUpaZDSM-iFCW0qikncixantn8u16jT2c
+###
+
+POST https://dev.dkomeza.pl/api/posts/6468a30e69336c2f02eb38ab/comment
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0NzA0YWRjODk0MTI5NGE4ZjFjYWE5NCIsImlhdCI6MTY4NTA4MDkwNiwiZXhwIjoxNjg1MDg4MTA2fQ.pEESyP_quMrUpaZDSM-iFCW0qikncixantn8u16jT2c
+Content-Type: "application/json"
+
+{
+    "content": "Super komentarz"
+}
+###
+
+POST https://dev.dkomeza.pl/api/posts/6468a30e69336c2f02eb38ab/comment/64705161bf3a818a62aa846f/like
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0NzA0YWRjODk0MTI5NGE4ZjFjYWE5NCIsImlhdCI6MTY4NTA4MDkwNiwiZXhwIjoxNjg1MDg4MTA2fQ.pEESyP_quMrUpaZDSM-iFCW0qikncixantn8u16jT2c

@@ -4,6 +4,7 @@ import { ImageModel, Image } from "../models/ImageModel.js";
 import { PostModel } from "../models/PostModel.js";
 import { User } from "../models/UserModel.js";
 import { TagModel, Tag } from "../models/TagModel.js";
+import { CommentModel, IComment } from "../models/CommentModel.js";
 import UserController from "./UserController.js";
 import mongoose from "mongoose";
 import sharp from "sharp";
@@ -16,7 +17,12 @@ interface Post {
   lastChangeTime: Date;
   lastChangeOperation: string;
   likes: string[];
-  comments: string[];
+  comments: {
+    _id: string;
+    text: string;
+    author: string;
+    lastChangeTime: Date;
+  }[];
   liked: boolean;
   tags: string[];
 }
@@ -149,7 +155,14 @@ class FileController {
       .populate<{ images: Image[] }>("images")
       .populate<{ author: User }>("author")
       .populate<{ likes: User[] }>("likes")
-      .populate<{ tags: Tag[] }>("tags");
+      .populate<{ tags: Tag[] }>("tags")
+      .populate<{ comments: IComment[] }>({
+        path: "comments",
+        populate: [
+          { path: "author", model: "User" },
+          { path: "likes", model: "User" },
+        ],
+      });
 
     const likedPosts = posts.map((post) => {
       const likes = post.likes.map((like) => like._id.toString());
@@ -167,7 +180,15 @@ class FileController {
         lastChangeTime: post.lastChangeTime,
         lastChangeOperation: post.lastChangeOperation,
         likes: post.likes.map((like) => like._id.toString()),
-        comments: post.comments.map((comment) => comment._id.toString()),
+        comments: post.comments.map((comment) => {
+          return {
+            _id: comment._id.toString(),
+            text: comment.text,
+            author: comment.author.username,
+            lastChangeTime: comment.lastChangeTime,
+            likes: comment.likes.map((like) => like._id.toString()),
+          };
+        }),
         liked: likedPosts[index] || false,
         tags: post.tags.map((tag) => tag.name),
       };
@@ -240,9 +261,71 @@ class FileController {
     return { ok: true, status: "ok" };
   };
 
+  public commentPost = async (token: string, id: string, text: string) => {
+    const user = await UserController.getUserByToken(token);
+
+    if (!user.ok) {
+      return { ok: false, status: "Invalid token" };
+    }
+    if (!user.user) {
+      return { ok: false, status: "User not found" };
+    }
+
+    const post = await PostModel.findById(id);
+    if (!post) {
+      return { ok: false, status: "Post not found" };
+    }
+
+    const userObject = new mongoose.Types.ObjectId(user.user._id);
+    const comment = new CommentModel({
+      author: userObject._id,
+      text,
+    });
+    await comment.save();
+
+    post.comments.push(comment._id);
+    await post.save();
+
+    return { ok: true, status: "ok" };
+  };
+
+  public likeComment = async (token: string, id: string) => {
+    const user = await UserController.getUserByToken(token);
+
+    if (!user.ok) {
+      return { ok: false, status: "Invalid token" };
+    }
+    if (!user.user) {
+      return { ok: false, status: "User not found" };
+    }
+
+    const comment = await CommentModel.findById(id);
+    if (!comment) {
+      return { ok: false, status: "Comment not found" };
+    }
+
+    const likes = comment.likes.map((like) => like._id.toString());
+
+    if (likes.includes(user.user._id.toString())) {
+      comment.likes = comment.likes.filter(
+        (like) => like._id.toString() !== user.user!._id.toString()
+      );
+    } else {
+      const userObject = new mongoose.Types.ObjectId(user.user._id);
+      comment.likes.push(userObject);
+    }
+
+    comment.save();
+
+    return { ok: true, status: "ok" };
+  };
+
   public searchTags = async (search: string, usedTags: string[]) => {
     const tags = await TagModel.find({
-      name: { $regex: `${search}`, $options: "i" },
+      $and: [
+        { name: { $regex: `${search}`, $options: "i" } },
+        { name: { $nin: usedTags } },
+      ],
     })
       .sort({
         popularity: -1,

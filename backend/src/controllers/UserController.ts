@@ -1,8 +1,7 @@
 import { UserModel } from "../models/UserModel.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import SlowRequest from "../../../../../../Github/slow/build/router/Request.js";
-import SlowResponse from "../../../../../../Github/slow/build/router/Response.js";
+import { SlowRequest, SlowResponse } from "../../../../slow/index.js";
 
 interface UserData {
   username: string;
@@ -30,12 +29,8 @@ class UserController {
       return res.send({ ok: false, status: "Invalid token" });
     }
 
-    if (!req.params["id"]) {
-      return res.send({ ok: false, status: "No image id provided" });
-    }
-
     return next();
-  }
+  };
 
   async registerUser(userData: UserData) {
     const { username, email, password, name, surname } = userData;
