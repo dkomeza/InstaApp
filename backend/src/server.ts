@@ -2,8 +2,14 @@ import slow from "../../../slow/index.js";
 import formidable from "formidable";
 import * as fs from "fs";
 
-import ImageController from "./controllers/ImageController.js";
-import UserController from "./controllers/UserController.js";
+import {
+  UserController,
+  PostController,
+  ProfileController,
+  TagController,
+  ImageController,
+  CommentController,
+} from "./controllers/index.js";
 import { connectDB } from "./data/DB.js";
 
 const app = new slow();
@@ -27,7 +33,7 @@ router.route("get", "/status", (_req, res) => {
 router.route("get", "/posts", async (req, res) => {
   const token = req.headers["authorization"]?.split(" ")[1];
 
-  const posts = await ImageController.getPosts(token!);
+  const posts = await PostController.getPosts(token!);
 
   if (!posts.ok) {
     return res.send({ ok: false, status: posts.status });
@@ -87,7 +93,7 @@ router.route("post", "/posts", (req, res) => {
 
     const parsedTags = JSON.parse(tags.toString()) as string[];
 
-    ImageController.savePost(
+    PostController.uploadPost(
       token.toString(),
       description.toString(),
       parsedTags,
@@ -106,7 +112,7 @@ router.route("post", "/posts/:id/like", async (req, res) => {
     return res.send({ ok: false, status: "No id provided" });
   }
 
-  const like = await ImageController.likePost(token, id.toString());
+  const like = await PostController.likePost(token, id.toString());
 
   if (!like.ok) {
     return res.send({ ok: false, status: like.status });
@@ -131,7 +137,7 @@ router.route("post", "/posts/:id/comment", async (req, res) => {
     return res.send({ ok: false, status: "No token provided" });
   }
 
-  const comment = await ImageController.commentPost(
+  const comment = await CommentController.commentPost(
     token,
     id.toString(),
     content.toString()
@@ -155,7 +161,7 @@ router.route("post", "/posts/:id/comment/:commentId/like", async (req, res) => {
     return res.send({ ok: false, status: "No token provided" });
   }
 
-  const like = await ImageController.likeComment(token, commentId.toString());
+  const like = await CommentController.likeComment(token, commentId.toString());
 
   if (!like.ok) {
     return res.send({ ok: false, status: like.status });
@@ -226,7 +232,7 @@ router.route("get", "/images/:id/preview", async (req, res) => {
 router.route("post", "/tags", async (req, res) => {
   const search = req.body["search"] || "";
   const usedTags = req.body["tags"] || [];
-  const tags = await ImageController.searchTags(
+  const tags = await TagController.searchTags(
     search.toString(),
     usedTags instanceof Array ? usedTags : [usedTags]
   );
@@ -347,7 +353,7 @@ router.route("get", "/profile/:username", async (req, res) => {
     return res.send({ status: "Profile not found" });
   }
 
-  const userPosts = await ImageController.getPosts(token!, profile.profile.id);
+  const userPosts = await PostController.getPosts(token!, profile.profile.id);
 
   if (!userPosts.ok) {
     res.statusCode = 500;

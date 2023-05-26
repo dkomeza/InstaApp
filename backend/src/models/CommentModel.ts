@@ -1,16 +1,16 @@
 import mongoose from "mongoose";
-import { User } from "./UserModel";
+import { IUser } from "./UserModel.js";
 
 export interface IComment {
   _id: string;
-  author: User;
+  author: IUser;
   text: string;
   lastChangeTime: Date;
   history: {
     text: string;
     time: Date;
   }[];
-  likes: User[];
+  likes: IUser[];
 }
 
 const comments = new mongoose.Schema({

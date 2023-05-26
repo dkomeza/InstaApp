@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-export interface Image {
+export interface IImage {
   _id: string;
   album: string;
   originalName: string;
